@@ -44,6 +44,10 @@
 
 ;; Day 2
 (defparameter +winners+ '((rock . scissors) (scissors . paper) (paper . rock)))
+(defparameter +losers+ (mapcar (lambda (x) (cons (cdr x) (car x))) +winners+))
+(defparameter +move->score+ '((rock . 1) (paper . 2) (scissors . 3)))
+(defparameter +your-move->move+ '(("X" . lose) ("Y" . draw) ("Z" . win)))
+(defparameter +opp-move->move+ '(("A" . rock) ("B" . paper) ("C" . scissors)))
 
 (defun winner-score (opp-move your-move)
   (if (eql opp-move your-move)
@@ -52,13 +56,16 @@
 	  0
 	  6)))
 
-(defparameter +move->score+ '((rock . 1) (paper . 2) (scissors . 3)))
-(defparameter +your-move->move+ '(("X" . rock) ("Y" . paper) ("Z" . scissors)))
-(defparameter +opp-move->move+ '(("A" . rock) ("B" . paper) ("C" . scissors)))
+(defun calculate-move (opp-move desired-outcome)
+  (if (eql 'draw desired-outcome)
+      opp-move
+      (if (eql 'win desired-outcome)
+	  (cdr (assoc opp-move +losers+ :test #'eql))
+	  (cdr (assoc opp-move +winners+ :test #'eql)))))
 
 (defun calculate-score (moves)
-  (let ((opp-move  (cdr (assoc (first moves) +opp-move->move+ :test #'string=)))
-	(your-move (cdr (assoc (second moves) +your-move->move+ :test #'string=))))
+  (let* ((opp-move  (cdr (assoc (first moves) +opp-move->move+ :test #'string=)))
+	 (your-move (calculate-move opp-move (cdr (assoc (second moves) +your-move->move+ :test #'string=)))))
     (+ (cdr (assoc your-move +move->score+ :test #'eql))
        (winner-score opp-move your-move))))
 
